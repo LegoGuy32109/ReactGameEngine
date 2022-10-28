@@ -14,8 +14,8 @@ export default function Game() {
   // Keeps a array of current keys being pressed
   let keysActive = [];
   let playerInfo = {
-    x: 50,
-    y: 50,
+    x: 500,
+    y: 300,
     h: 50,
     w: 50,
     speed: { x: 0, y: 0 },
@@ -25,7 +25,7 @@ export default function Game() {
   };
   let worldInfo = {
     score: 0,
-    walls: { north: 30, south: 620, west: 30, east: 900 },
+    walls: { north: 30, south: 920, west: 30, east: 900 },
     wallsMovement: {
       north: { moving: false, shrinking: false, max: 300, min: 25, speed: 0.2 },
       south: { moving: false, shrinking: false, max: 900, min: 600, speed: 1 },
@@ -66,10 +66,18 @@ export default function Game() {
 
   function screen() {
     clearScreen();
-    ctx.fillStyle = "blue";
-    ctx.font = "49px serif";
-    ctx.fillText("WASD to Move around", 40, 60);
+    // Text
+    if (worldInfo.score === 0) {
+      ctx.fillStyle = "blue";
+      ctx.font = "49px serif";
+      ctx.fillText("WASD to Move around", 70, 100);
+    } else {
+      ctx.fillStyle = "gray";
+      ctx.font = "600px serif";
+      ctx.fillText(worldInfo.score, 250 -(50*(worldInfo.score.toString().length-1)), 700);
+    }
     // drawing player
+    ctx.fillStyle = "blue";
     ctx.fillRect(playerInfo.x, playerInfo.y, playerInfo.w, playerInfo.h);
     // For animating parts of the game
     timer++;
@@ -92,23 +100,26 @@ export default function Game() {
     ctx.fillRect(worldInfo.walls.east, 0, c.width, c.height); // east
 
     // Triggering movement at a certain score
-    if (!worldInfo.wallsMovement.east.moving && worldInfo.score > 1) {
+    if (!worldInfo.wallsMovement.east.moving && worldInfo.score > 4) {
       worldInfo.wallsMovement.east.moving = true;
       worldInfo.wallsMovement.east.shrinking = true;
     }
 
-    if (!worldInfo.wallsMovement.south.moving && worldInfo.score > 3) {
+    if (!worldInfo.wallsMovement.south.moving && worldInfo.score > 10) {
       worldInfo.wallsMovement.south.moving = true;
       worldInfo.wallsMovement.south.shrinking = false;
     }
-    if (!worldInfo.wallsMovement.west.moving && worldInfo.score > 5) {
+    if (!worldInfo.wallsMovement.west.moving && worldInfo.score > 15) {
       worldInfo.wallsMovement.west.moving = true;
       worldInfo.wallsMovement.west.shrinking = false;
     }
-    if (!worldInfo.wallsMovement.north.moving && worldInfo.score > 7) {
+    if (!worldInfo.wallsMovement.north.moving && worldInfo.score > 25) {
       worldInfo.wallsMovement.north.moving = true;
       worldInfo.wallsMovement.north.shrinking = false;
     }
+
+    // ADD INFINTE SPEED UPGRADE
+    // if(worldInfo.score > 30 && worldInfo.score)
 
     // checking each wall's movement, switching direction if neccessary
     Object.keys(worldInfo.wallsMovement).forEach((direction) => {
@@ -135,10 +146,11 @@ export default function Game() {
     });
   }
 
+  // Moving walls will move over collectable unless they switch direction thanks to this function
   function collectableOutOfBounds(direction) {
     switch (direction) {
       case "south":
-        if (collectableInfo.y > worldInfo.walls.south ) {
+        if (collectableInfo.y > worldInfo.walls.south) {
           worldInfo.wallsMovement.south.shrinking = false;
         }
         break;
@@ -307,6 +319,7 @@ export default function Game() {
   return (
     <>
       <h1>JavaScript Game Example</h1>
+      <h1>How high can you go?</h1>
     </>
   );
 }
