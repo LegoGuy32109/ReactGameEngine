@@ -24,6 +24,7 @@ export default function Game() {
     friction: 0.5,
   };
   let worldInfo = { ground: 600 };
+  let collectableInfo = { size: 26, x: 209, y: 300, pickUpRange: 30 };
 
   // Attach keyboard listeners when page renders
   React.useEffect(() => {
@@ -62,7 +63,37 @@ export default function Game() {
     ctx.fillRect(playerInfo.x, playerInfo.y, playerInfo.w, playerInfo.h);
     ctx.fillStyle = "brown";
     ctx.fillRect(0, worldInfo.ground, c.width, 30);
-    ctx.arc(100, 75, 50, 0 * Math.PI, 1.5 * Math.PI);
+    ctx.font = "13px serif";
+    ctx.fillText(JSON.stringify(playerInfo), 10, 20);
+    // summon collectables
+    collectables();
+  }
+  let timer = 0;
+
+  function collectables() {
+    timer++;
+    ctx.fillStyle = "gold";
+    // One collectable being spawned
+    ctx.save();
+    ctx.beginPath();
+    ctx.translate(collectableInfo.x, collectableInfo.y);
+    ctx.rotate(((timer % 360) * Math.PI) / 180);
+    ctx.rect(
+      -collectableInfo.size / 2,
+      -collectableInfo.size / 2,
+      collectableInfo.size,
+      collectableInfo.size
+    );
+    // This modifer for the second square makes a nice rotational complement
+    ctx.rotate((((-3.4 * timer) % 360) * Math.PI) / 180);
+    ctx.rect(
+      -collectableInfo.size / 2,
+      -collectableInfo.size / 2,
+      collectableInfo.size,
+      collectableInfo.size
+    );
+    ctx.fill();
+    ctx.restore();
   }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -142,10 +173,20 @@ export default function Game() {
     playerInfo.speed.x += playerInfo.acc.x;
     playerInfo.x += playerInfo.speed.x;
 
+    // Check if collectible collision was made
+    if (
+      playerInfo.y - collectableInfo.pickUpRange < collectableInfo.y - collectableInfo.size / 2 &&
+      playerInfo.y + playerInfo.h + collectableInfo.pickUpRange >
+        collectableInfo.y + collectableInfo.size / 2 &&
+      playerInfo.x - collectableInfo.pickUpRange < collectableInfo.x - collectableInfo.size / 2 &&
+      playerInfo.x + playerInfo.w + collectableInfo.pickUpRange > collectableInfo.x + collectableInfo.size / 2
+    ) {
+      console.log("Collision made!");
+      collectableInfo.x = Math.floor(Math.random() * (c.width-collectableInfo.size*2 - collectableInfo.size*2 + 1))+ collectableInfo.size*2;
+      collectableInfo.y = Math.floor(Math.random() * (worldInfo.ground-collectableInfo.size*2 - collectableInfo.size*2 + 1))+ collectableInfo.size*2;
+    }
     // Render to the canvas
     screen();
-    ctx.font = "13px serif";
-    ctx.fillText(JSON.stringify(playerInfo), 10, 20);
   }
 
   return (
