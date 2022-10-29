@@ -194,7 +194,7 @@ export default function Game() {
 
   function drawCollectable() {
     ctx.fillStyle = "gold";
-    // Saving position to return to after rotating drawing context
+    // Stop moving walls from moving over collectable
     ctx.save();
     ctx.beginPath();
     ctx.translate(collectableInfo.x, collectableInfo.y);
