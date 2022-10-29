@@ -1,7 +1,7 @@
 {
-  "name": "graphics2d",
+  "name": "ReactGameEngine",
   "version": "0.1.0",
-  "homepage": "https://legoguy32109.github.io/2DgraphicDemo/",
+  "homepage": "https://legoguy32109.github.io/ReactGameEngine/",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.5",

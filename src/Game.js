@@ -25,12 +25,11 @@ export default function Game() {
   };
   let worldInfo = {
     score: 0,
-    walls: { north: 30, south: 920, west: 30, east: 900 },
-    wallsMovement: {
-      north: { moving: false, shrinking: false, max: 300, min: 25, speed: 0.2 },
-      south: { moving: false, shrinking: false, max: 900, min: 600, speed: 1 },
-      west: { moving: false, shrinking: false, max: 300, min: 10, speed: 0.7 },
-      east: { moving: false, shrinking: false, max: 900, min: 700, speed: 0.4 },
+    walls: {
+      north: { pos: 30, moving: false, shrinking: false, max: 300, min: 25, speed: 0.2 },
+      south: { pos: 920, moving: false, shrinking: false, max: 900, min: 600, speed: 1 },
+      west: { pos: 30, moving: false, shrinking: false, max: 300, min: 10, speed: 0.7 },
+      east: { pos: 900, moving: false, shrinking: false, max: 900, min: 700, speed: 0.4 },
     },
   };
   let collectableInfo = { size: 26, x: 209, y: 300, pickUpRange: 30 };
@@ -74,7 +73,7 @@ export default function Game() {
     } else {
       ctx.fillStyle = "gray";
       ctx.font = "600px serif";
-      ctx.fillText(worldInfo.score, 250 -(50*(worldInfo.score.toString().length-1)), 700);
+      ctx.fillText(worldInfo.score, 250 - (50 * (worldInfo.score.toString().length - 1)), 700);
     }
     // drawing player
     ctx.fillStyle = "blue";
@@ -94,52 +93,52 @@ export default function Game() {
 
   function walls() {
     ctx.fillStyle = "brown";
-    ctx.fillRect(0, worldInfo.walls.south, c.width, c.height); // south
-    ctx.fillRect(0, 0, c.width, worldInfo.walls.north); // north
-    ctx.fillRect(0, 0, worldInfo.walls.west, c.height); // west
-    ctx.fillRect(worldInfo.walls.east, 0, c.width, c.height); // east
+    ctx.fillRect(0, worldInfo.walls.south.pos, c.width, c.height); // south
+    ctx.fillRect(0, 0, c.width, worldInfo.walls.north.pos); // north
+    ctx.fillRect(0, 0, worldInfo.walls.west.pos, c.height); // west
+    ctx.fillRect(worldInfo.walls.east.pos, 0, c.width, c.height); // east
 
     // Triggering movement at a certain score
-    if (!worldInfo.wallsMovement.east.moving && worldInfo.score > 4) {
-      worldInfo.wallsMovement.east.moving = true;
-      worldInfo.wallsMovement.east.shrinking = true;
+    if (!worldInfo.walls.east.moving && worldInfo.score > 4) {
+      worldInfo.walls.east.moving = true;
+      worldInfo.walls.east.shrinking = true;
     }
 
-    if (!worldInfo.wallsMovement.south.moving && worldInfo.score > 10) {
-      worldInfo.wallsMovement.south.moving = true;
-      worldInfo.wallsMovement.south.shrinking = false;
+    if (!worldInfo.walls.south.moving && worldInfo.score > 10) {
+      worldInfo.walls.south.moving = true;
+      worldInfo.walls.south.shrinking = false;
     }
-    if (!worldInfo.wallsMovement.west.moving && worldInfo.score > 15) {
-      worldInfo.wallsMovement.west.moving = true;
-      worldInfo.wallsMovement.west.shrinking = false;
+    if (!worldInfo.walls.west.moving && worldInfo.score > 15) {
+      worldInfo.walls.west.moving = true;
+      worldInfo.walls.west.shrinking = false;
     }
-    if (!worldInfo.wallsMovement.north.moving && worldInfo.score > 25) {
-      worldInfo.wallsMovement.north.moving = true;
-      worldInfo.wallsMovement.north.shrinking = false;
+    if (!worldInfo.walls.north.moving && worldInfo.score > 25) {
+      worldInfo.walls.north.moving = true;
+      worldInfo.walls.north.shrinking = false;
     }
 
     // ADD INFINTE SPEED UPGRADE
     // if(worldInfo.score > 30 && worldInfo.score)
 
     // checking each wall's movement, switching direction if neccessary
-    Object.keys(worldInfo.wallsMovement).forEach((direction) => {
-      if (worldInfo.wallsMovement[direction].moving) {
+    Object.keys(worldInfo.walls).forEach((direction) => {
+      if (worldInfo.walls[direction].moving) {
         collectableOutOfBounds(direction);
-        if (worldInfo.wallsMovement[direction].shrinking) {
-          worldInfo.walls[direction] -=
-            worldInfo.wallsMovement[direction].speed;
+        if (worldInfo.walls[direction].shrinking) {
+          worldInfo.walls[direction].pos -=
+            worldInfo.walls[direction].speed;
           if (
-            worldInfo.walls[direction] < worldInfo.wallsMovement[direction].min
+            worldInfo.walls[direction].pos < worldInfo.walls[direction].min
           ) {
-            worldInfo.wallsMovement[direction].shrinking = false;
+            worldInfo.walls[direction].shrinking = false;
           }
         } else {
-          worldInfo.walls[direction] +=
-            worldInfo.wallsMovement[direction].speed;
+          worldInfo.walls[direction].pos +=
+            worldInfo.walls[direction].speed;
           if (
-            worldInfo.walls[direction] > worldInfo.wallsMovement[direction].max
+            worldInfo.walls[direction].pos > worldInfo.walls[direction].max
           ) {
-            worldInfo.wallsMovement[direction].shrinking = true;
+            worldInfo.walls[direction].shrinking = true;
           }
         }
       }
@@ -150,23 +149,23 @@ export default function Game() {
   function collectableOutOfBounds(direction) {
     switch (direction) {
       case "south":
-        if (collectableInfo.y > worldInfo.walls.south) {
-          worldInfo.wallsMovement.south.shrinking = false;
+        if (collectableInfo.y > worldInfo.walls.south.pos) {
+          worldInfo.walls.south.shrinking = false;
         }
         break;
       case "east":
-        if (collectableInfo.x > worldInfo.walls.east) {
-          worldInfo.wallsMovement.east.shrinking = false;
+        if (collectableInfo.x > worldInfo.walls.east.pos) {
+          worldInfo.walls.east.shrinking = false;
         }
         break;
       case "west":
-        if (collectableInfo.x < worldInfo.walls.west) {
-          worldInfo.wallsMovement.west.shrinking = true;
+        if (collectableInfo.x < worldInfo.walls.west.pos) {
+          worldInfo.walls.west.shrinking = true;
         }
         break;
       case "north":
-        if (collectableInfo.y < worldInfo.walls.north) {
-          worldInfo.wallsMovement.north.shrinking = true;
+        if (collectableInfo.y < worldInfo.walls.north.pos) {
+          worldInfo.walls.north.shrinking = true;
         }
         break;
       default:
@@ -234,23 +233,23 @@ export default function Game() {
     }
 
     if (
-      playerInfo.x < worldInfo.walls.west ||
-      playerInfo.x + playerInfo.w > worldInfo.walls.east
+      playerInfo.x < worldInfo.walls.west.pos ||
+      playerInfo.x + playerInfo.w > worldInfo.walls.east.pos
     ) {
       playerInfo.speed.x = -playerInfo.speed.x;
       playerInfo.acc.x = -playerInfo.acc.x;
-      playerInfo.x < worldInfo.walls.west
+      playerInfo.x < worldInfo.walls.west.pos
         ? (playerInfo.x += 10)
         : (playerInfo.x -= 10);
     }
 
     if (
-      playerInfo.y < worldInfo.walls.north ||
-      playerInfo.y + playerInfo.h > worldInfo.walls.south
+      playerInfo.y < worldInfo.walls.north.pos ||
+      playerInfo.y + playerInfo.h > worldInfo.walls.south.pos
     ) {
       playerInfo.speed.y = -playerInfo.speed.y;
       playerInfo.acc.y = -playerInfo.acc.y;
-      playerInfo.y < worldInfo.walls.north
+      playerInfo.y < worldInfo.walls.north.pos
         ? (playerInfo.y += 10)
         : (playerInfo.y -= 10);
     }
@@ -290,23 +289,23 @@ export default function Game() {
     // Check if collectible collision was made
     if (
       playerInfo.y - collectableInfo.pickUpRange <
-        collectableInfo.y - collectableInfo.size / 2 &&
+      collectableInfo.y - collectableInfo.size / 2 &&
       playerInfo.y + playerInfo.h + collectableInfo.pickUpRange >
-        collectableInfo.y + collectableInfo.size / 2 &&
+      collectableInfo.y + collectableInfo.size / 2 &&
       playerInfo.x - collectableInfo.pickUpRange <
-        collectableInfo.x - collectableInfo.size / 2 &&
+      collectableInfo.x - collectableInfo.size / 2 &&
       playerInfo.x + playerInfo.w + collectableInfo.pickUpRange >
-        collectableInfo.x + collectableInfo.size / 2
+      collectableInfo.x + collectableInfo.size / 2
     ) {
       worldInfo.score++;
       // Spawn the collectible within the range of the walls
       collectableInfo.x = randomNumber(
-        worldInfo.walls.west,
-        worldInfo.walls.east
+        worldInfo.walls.west.pos,
+        worldInfo.walls.east.pos
       );
       collectableInfo.y = randomNumber(
-        worldInfo.walls.north,
-        worldInfo.walls.south
+        worldInfo.walls.north.pos,
+        worldInfo.walls.south.pos
       );
     }
     // Render to the canvas
@@ -318,8 +317,8 @@ export default function Game() {
   }
   return (
     <>
-      <h1>JavaScript Game Example</h1>
-      <h1>How high can you go?</h1>
+      <h1>React Game Example</h1>
+      <h3>How high can you go? How many points can you collect? Before the sliding cube drives you CRAZY?!?!</h3>
     </>
   );
 }
