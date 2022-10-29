@@ -13,6 +13,10 @@ export default function Game() {
   var ctx = c.getContext("2d");
   // Keeps a array of current keys being pressed
   let keysActive = [];
+
+  const [showLog, setShowLog] = React.useState(false);
+
+  // Information about the player
   let playerInfo = {
     x: 500,
     y: 300,
@@ -22,7 +26,10 @@ export default function Game() {
     acc: { x: 0, y: 0 },
     moveSpeed: 0.02,
     friction: 0.5,
+    maxAcc: 3,
+    maxSpeed: 20,
   };
+  // Information about the score and walls
   let worldInfo = {
     score: 0,
     walls: {
@@ -32,6 +39,7 @@ export default function Game() {
       east: { pos: 900, moving: false, shrinking: false, max: 900, min: 700, speed: 0.4 },
     },
   };
+  // Where the collectable is and what extra range there is for the player to pick up
   let collectableInfo = { size: 26, x: 209, y: 300, pickUpRange: 30 };
 
   // Attach keyboard listeners when page renders
@@ -46,6 +54,7 @@ export default function Game() {
     return () => t.stop();
   }, [update]);
 
+  // keep array of keysActive updated with the current keys being held
   const detectKeyAction = (e) => {
     let keyUp = e.type === "keyup";
     let keyDown = e.type === "keydown";
@@ -57,23 +66,24 @@ export default function Game() {
     }
   };
 
-  // clearing the canvas to be white
+  // clearing the canvas to be off-white
   function clearScreen() {
     ctx.fillStyle = "#F0F0F0";
     ctx.fillRect(0, 0, c.width, c.height);
   }
 
   function screen() {
+    // Draw background for screen each frame
     clearScreen();
-    // Text
+    // Intro text and score
     if (worldInfo.score === 0) {
       ctx.fillStyle = "blue";
       ctx.font = "49px serif";
       ctx.fillText("WASD to Move around", 70, 100);
     } else {
       ctx.fillStyle = "gray";
-      ctx.font = "600px serif";
-      ctx.fillText(worldInfo.score, 250 - (50 * (worldInfo.score.toString().length - 1)), 700);
+      ctx.font = "300px serif";
+      ctx.fillText(worldInfo.score, ((worldInfo.walls.east.pos - worldInfo.walls.west.pos) / 2) - 110, ((worldInfo.walls.south.pos - worldInfo.walls.north.pos) / 2) + 100);
     }
     // drawing player
     ctx.fillStyle = "blue";
@@ -83,42 +93,51 @@ export default function Game() {
     // walls
     walls();
 
-    ctx.fillStyle = "white";
-    ctx.font = "13px serif";
-    ctx.fillText(JSON.stringify(playerInfo), 10, 20);
-    // summon collectables
-    collectables();
+    // debug log toggle
+    if (showLog) {
+      ctx.fillStyle = "white";
+      ctx.font = "13px serif";
+      ctx.fillText(JSON.stringify(playerInfo), 10, 20);
+    }
+
+    // summon collectable
+    drawCollectable();
   }
   let timer = 0;
 
   function walls() {
+    // draw walls
     ctx.fillStyle = "brown";
     ctx.fillRect(0, worldInfo.walls.south.pos, c.width, c.height); // south
     ctx.fillRect(0, 0, c.width, worldInfo.walls.north.pos); // north
     ctx.fillRect(0, 0, worldInfo.walls.west.pos, c.height); // west
     ctx.fillRect(worldInfo.walls.east.pos, 0, c.width, c.height); // east
 
-    // Triggering movement at a certain score
+    // Triggering wall movement at a certain score
     if (!worldInfo.walls.east.moving && worldInfo.score > 4) {
       worldInfo.walls.east.moving = true;
       worldInfo.walls.east.shrinking = true;
     }
-
-    if (!worldInfo.walls.south.moving && worldInfo.score > 10) {
+    if (!worldInfo.walls.south.moving && worldInfo.score > 15) {
       worldInfo.walls.south.moving = true;
       worldInfo.walls.south.shrinking = false;
     }
-    if (!worldInfo.walls.west.moving && worldInfo.score > 15) {
+    if (!worldInfo.walls.west.moving && worldInfo.score > 30) {
       worldInfo.walls.west.moving = true;
       worldInfo.walls.west.shrinking = false;
     }
-    if (!worldInfo.walls.north.moving && worldInfo.score > 25) {
+    if (!worldInfo.walls.north.moving && worldInfo.score > 40) {
       worldInfo.walls.north.moving = true;
       worldInfo.walls.north.shrinking = false;
     }
 
-    // ADD INFINTE SPEED UPGRADE
-    // if(worldInfo.score > 30 && worldInfo.score)
+    // SPEED UP WALLS FOR INFINITY
+    if (worldInfo.score > 60) {
+      worldInfo.walls.west.speed = worldInfo.score / 60;
+      worldInfo.walls.north.speed = worldInfo.score / 100;
+      worldInfo.walls.south.speed = worldInfo.score / 55;
+      worldInfo.walls.east.speed = worldInfo.score / 120;
+    }
 
     // checking each wall's movement, switching direction if neccessary
     Object.keys(worldInfo.walls).forEach((direction) => {
@@ -173,9 +192,9 @@ export default function Game() {
     }
   }
 
-  function collectables() {
+  function drawCollectable() {
     ctx.fillStyle = "gold";
-    // One collectable being spawned
+    // Saving position to return to after rotating drawing context
     ctx.save();
     ctx.beginPath();
     ctx.translate(collectableInfo.x, collectableInfo.y);
@@ -207,6 +226,14 @@ export default function Game() {
     if (keysActive.includes("d")) {
       playerInfo.acc.x += playerInfo.moveSpeed;
     }
+    if (keysActive.includes("w")) {
+      playerInfo.acc.y -= playerInfo.moveSpeed;
+    }
+    if (keysActive.includes("s")) {
+      playerInfo.acc.y += playerInfo.moveSpeed;
+    }
+
+    // friction when not moving
     if (!keysActive.includes("d") && !keysActive.includes("a")) {
       playerInfo.acc.x = 0;
       playerInfo.speed.x > 0
@@ -215,12 +242,6 @@ export default function Game() {
       if (Math.abs(playerInfo.speed.x) < playerInfo.friction * 2) {
         playerInfo.speed.x = 0;
       }
-    }
-    if (keysActive.includes("w")) {
-      playerInfo.acc.y -= playerInfo.moveSpeed;
-    }
-    if (keysActive.includes("s")) {
-      playerInfo.acc.y += playerInfo.moveSpeed;
     }
     if (!keysActive.includes("s") && !keysActive.includes("w")) {
       playerInfo.acc.y = 0;
@@ -232,6 +253,7 @@ export default function Game() {
       }
     }
 
+    // bouncing player off of walls
     if (
       playerInfo.x < worldInfo.walls.west.pos ||
       playerInfo.x + playerInfo.w > worldInfo.walls.east.pos
@@ -242,7 +264,6 @@ export default function Game() {
         ? (playerInfo.x += 10)
         : (playerInfo.x -= 10);
     }
-
     if (
       playerInfo.y < worldInfo.walls.north.pos ||
       playerInfo.y + playerInfo.h > worldInfo.walls.south.pos
@@ -254,30 +275,30 @@ export default function Game() {
         : (playerInfo.y -= 10);
     }
 
-    // clamping accelleration
-    if (playerInfo.acc.x > 3) {
-      playerInfo.acc.x = 3;
+    // clamping accelleration and speed
+    if (playerInfo.acc.x > playerInfo.maxAcc) {
+      playerInfo.acc.x = playerInfo.maxAcc;
     }
-    if (playerInfo.acc.x < -3) {
-      playerInfo.acc.x = -3;
+    if (playerInfo.acc.x < -playerInfo.maxAcc) {
+      playerInfo.acc.x = -playerInfo.maxAcc;
     }
-    if (playerInfo.acc.y > 3) {
-      playerInfo.acc.y = 3;
+    if (playerInfo.acc.y > playerInfo.maxAcc) {
+      playerInfo.acc.y = playerInfo.maxAcc;
     }
-    if (playerInfo.acc.y < -3) {
-      playerInfo.acc.y = -3;
+    if (playerInfo.acc.y < -playerInfo.maxAcc) {
+      playerInfo.acc.y = -playerInfo.maxAcc;
     }
-    if (playerInfo.speed.x > 30) {
-      playerInfo.speed.x = 30;
+    if (playerInfo.speed.x > playerInfo.maxSpeed) {
+      playerInfo.speed.x = playerInfo.maxSpeed;
     }
-    if (playerInfo.speed.x < -30) {
-      playerInfo.speed.x = -30;
+    if (playerInfo.speed.x < -playerInfo.maxSpeed) {
+      playerInfo.speed.x = -playerInfo.maxSpeed;
     }
-    if (playerInfo.speed.y > 30) {
-      playerInfo.speed.y = 30;
+    if (playerInfo.speed.y > playerInfo.maxSpeed) {
+      playerInfo.speed.y = playerInfo.maxSpeed;
     }
-    if (playerInfo.speed.y < -30) {
-      playerInfo.speed.y = -30;
+    if (playerInfo.speed.y < -playerInfo.maxSpeed) {
+      playerInfo.speed.y = -playerInfo.maxSpeed;
     }
 
     // set player movement
@@ -312,13 +333,17 @@ export default function Game() {
     screen();
   }
 
+  // For spawning a new collectable
   function randomNumber(min, max) {
     return Math.random() * (max - min) + min;
   }
   return (
     <>
       <h1>React Game Example</h1>
-      <h3>How high can you go? How many points can you collect? Before the sliding cube drives you CRAZY?!?!</h3>
+      <nav>
+        <h3>How high can you go? How many points can you collect? Before the bouncy walls drive you CRAZY?!?!</h3>
+        <button onClick={() => setShowLog(prevVal => !prevVal)}>Debug Info</button>
+      </nav>
     </>
   );
 }
