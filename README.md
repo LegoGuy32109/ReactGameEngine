@@ -2,7 +2,7 @@
 
 The power of a game engine from within a React Component, it can be added to any existing React project and utilizes the canvas to display visuals.
 
-![image of site working](./public/siteImage.png)
+![image of site working](./public/siteGame.png)
 
 ## Keyboard listener
 
